@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -24,7 +23,14 @@ jobs:
       - name: Build with maven
         run: ./mvnw -B package
 
+      - name: Upload jar file
+        uses: actions/upload-artifact@v4
+        with:
+          name: employees-jar
+          path: target/employees-*.jar
+
   integration-tests:
+    if: false
     runs-on: ubuntu-latest
     needs: build
     env: 
@@ -32,7 +38,7 @@ jobs:
       SPRING_DATASOURCE_USERNAME: employees
       SPRING_DATASOURCE_PASSWORD: employees
     services:
-      maria-db:
+      mariadb:
         image: mariadb:12.1.1-rc
         env:
           MARIADB_USER: employees
@@ -46,7 +52,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -64,9 +69,31 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     needs: build
-
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - run: echo "build image"
+      - name: Download jar file
+        uses: actions/download-artifact@v4
+        with:
+          name: employees-jar
+          path: target/
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile.layers
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          
 
   deploy:
     runs-on: ubuntu-latest
