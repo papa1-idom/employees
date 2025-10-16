@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -20,8 +22,14 @@ jobs:
           java-version: '21'
           cache: 'maven'
         
+      - name: Set version
+        id: set_version
+        run: |
+          VERSION="1.0.0-${GITHUB_RUN_NUMBER}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
       - name: Build with maven
-        run: ./mvnw -B package
+        run: ./mvnw -B package -Drevision=$VERSION
 
       - name: Upload jar file
         uses: actions/upload-artifact@v4
@@ -75,12 +83,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-        
+
       - name: Download jar file
         uses: actions/download-artifact@v4
         with:
           name: employees-jar
           path: target/
+
+      - name: Read version from job
+        run: |
+          echo "VERSION=${{ needs.build.outputs.version }}" >> $GITHUB_ENV
+          echo "Version is $VERSION"
 
       - name: Login to Github Container Registry
         uses: docker/login-action@v3
@@ -95,7 +108,7 @@ jobs:
           context: .
           file: Dockerfile.layers
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository }}:${{ env.VERSION }} , ghcr.io/${{ github.repository }}:latest
 
   deploy:
     runs-on: ubuntu-latest
