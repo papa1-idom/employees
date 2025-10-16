@@ -23,3 +23,24 @@ jobs:
         
       - name: Build with maven
         run: ./mvnw -B package
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - run: echo "int tests"
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - run: echo "build image"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-image
+
+    steps:
+      - run: echo "deploy"
