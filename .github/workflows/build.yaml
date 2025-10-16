@@ -19,6 +19,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'maven'
         
       - name: Build with maven
-        run: ./mvnw -B package        
+        run: ./mvnw -B package
