@@ -28,6 +28,7 @@ jobs:
           VERSION="1.0.0-${GITHUB_RUN_NUMBER}"
           echo "version=$VERSION"
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build with maven
         run: ./mvnw -B package -Drevision=$VERSION
