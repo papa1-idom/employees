@@ -29,7 +29,18 @@ jobs:
     needs: build
 
     steps:
-      - run: echo "int tests"
+      - name: Checkout code
+        uses: actions/checkout@v5
+      
+      - name: Set up java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+        
+      - name: Build with maven
+        run: ./mvnw -B verify
 
   build-image:
     runs-on: ubuntu-latest
