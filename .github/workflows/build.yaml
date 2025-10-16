@@ -93,7 +93,8 @@ jobs:
 
       - name: Read version from job
         run: |
-          echo "VERSION=${{ needs.build.outputs.version }}" >> $GITHUB_ENV
+          VERSION=${{ needs.build.outputs.version }}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Version is $VERSION"
 
       - name: Login to Github Container Registry
